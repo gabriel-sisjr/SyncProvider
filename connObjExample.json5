@@ -1,0 +1,30 @@
+// DESCONECTADO
+{
+	"details": {},
+	"isConnected": false,
+	"type": "none",
+	"isInternetReachable": false,
+	"isWifiEnabled": false
+}
+
+// WIFI
+{
+	"details": {
+		"strength": 99
+	},
+	"isConnected": false,
+	"type": "none",
+	"isInternetReachable": false,
+	"isWifiEnabled": false
+}
+
+// 4g
+{
+	"details": {
+		"cellularGeneration": "4g"
+	},
+	"isConnected": false,
+	"type": "none",
+	"isInternetReachable": false,
+	"isWifiEnabled": false
+}
