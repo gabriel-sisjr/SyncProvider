@@ -100,7 +100,7 @@ const Home: React.FC = () => {
   const {netInfoState} = useConnection();
   const {isSync, itemsCount, storage} = useConnection();
 
-  const addToStorage = () => storage.setItem('viagens', data);
+  const addToStorage = () => storage.setItem('viagens', JSON.stringify(data));
 
   const clearAll = () => storage.removeAll();
 

@@ -8,15 +8,20 @@ import React, {
 } from 'react';
 
 import NetInfo, {NetInfoState} from '@react-native-community/netinfo';
-import {mmkvStorage} from '../storage';
-import {Viagem} from '../@types/viagem';
-import {StoreService} from '../storage/types';
+import {MMKV} from 'react-native-mmkv';
 
 interface ConnectionContextData {
   netInfoState: NetInfoState | null;
   isSync: boolean;
   itemsCount: number;
-  storage: StoreService;
+  storage: {
+    getItem: (key: string) => string | null;
+    setItem: (key: string, value: string) => void;
+    countItems: () => number;
+    contains: (key: string) => boolean;
+    removeItem: (key: string) => void;
+    removeAll: () => void;
+  };
 }
 
 interface IProps {
@@ -32,9 +37,73 @@ export const ConnectionProvider: React.FC<IProps> = ({children}) => {
     {} as NetInfoState,
   );
 
+  const mmkvStorage = useCallback(() => new MMKV(), []);
+
   const [isSync, setIsSync] = useState(false);
   const [itemsCount, setItemsCount] = useState(0);
-  const [storage] = useState(mmkvStorage);
+  const [data, setData] = useState<any>({} as any);
+
+  // Acessors
+  const getItem = useCallback(
+    (key: string) => {
+      const content = mmkvStorage().getString(key);
+      if (!content) {
+        return null;
+      }
+
+      return content;
+    },
+    [mmkvStorage],
+  );
+
+  const setItem = useCallback(
+    (key: string, value: string) => {
+      mmkvStorage().set(key, value);
+      setData(value);
+    },
+    [mmkvStorage],
+  );
+
+  const countItems = useCallback(() => {
+    return mmkvStorage().getAllKeys().length;
+  }, [mmkvStorage]);
+
+  const contains = useCallback(
+    (key: string) => {
+      return mmkvStorage().contains(key);
+    },
+    [mmkvStorage],
+  );
+
+  const removeItem = useCallback(
+    (key: string) => {
+      mmkvStorage().delete(key);
+      const cleanedObj = Object.keys(key)
+        .filter(objKey => objKey !== key)
+        .reduce((newObj: any, k) => {
+          newObj[k] = data[k];
+          return newObj;
+        }, {});
+
+      setData(cleanedObj);
+    },
+    [mmkvStorage, data],
+  );
+
+  const removeAll = useCallback(() => {
+    mmkvStorage().clearAll();
+    setData({});
+  }, [mmkvStorage]);
+  // End Acessors
+
+  const storage = {
+    getItem,
+    setItem,
+    countItems,
+    contains,
+    removeItem,
+    removeAll,
+  };
 
   const checkEndpoint = () => {
     const success = fetch('https://google.com.br')
@@ -44,7 +113,7 @@ export const ConnectionProvider: React.FC<IProps> = ({children}) => {
     return success;
   };
 
-  const syncItems = (jsonData: Viagem[], url: string) => {
+  const syncItems = (jsonData: string, url: string) => {
     // const response = fetch(url, {
     //   method: 'POST',
     //   body: jsonData,
@@ -63,44 +132,48 @@ export const ConnectionProvider: React.FC<IProps> = ({children}) => {
     return response;
   };
 
-  const syncItenss = useCallback((netInfo: NetInfoState) => {
-    if (netInfo.isConnected && netInfo.isInternetReachable) {
-      if (mmkvStorage.contains('viagens')) {
-        // ping
-        checkEndpoint().then(() => {
-          // start upload
-          const items = mmkvStorage.getItem<Viagem[]>('viagens');
+  const syncItenss = useCallback(
+    (netInfo: NetInfoState) => {
+      if (netInfo.isConnected && netInfo.isInternetReachable) {
+        if (contains('viagens')) {
+          // ping
+          checkEndpoint().then(() => {
+            // start upload
+            const items = getItem('viagens');
 
-          syncItems(items!, 'url')
-            .then(() => {
-              mmkvStorage.removeItem('viagens');
-              setItemsCount(mmkvStorage.countItems());
-              setIsSync(true);
-            })
-            .catch(err => JSON.stringify(err, null, 2));
-        });
+            syncItems(items!, 'url')
+              .then(() => {
+                removeItem('viagens');
+                const count = countItems();
+                setItemsCount(count);
+                setIsSync(true);
+              })
+              .catch(err => JSON.stringify(err, null, 2));
+          });
+        }
       }
-    }
-  }, []);
+    },
+    [contains, countItems, getItem, removeItem],
+  );
 
   const listenerCallBack = useCallback(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsSync(false);
       setNetInfoState(state);
-      setItemsCount(mmkvStorage.countItems());
+      setItemsCount(countItems());
       syncItenss(state);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [syncItenss]);
+  }, [syncItenss, countItems]);
 
   useEffect(() => {
     listenerCallBack();
   }, [listenerCallBack]);
 
-  useEffect(() => {}, [storage]);
+  useEffect(() => {}, [data]);
 
   return (
     <ConnectionContext.Provider
