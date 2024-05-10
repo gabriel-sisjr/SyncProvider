@@ -1,79 +1,89 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Connection Provider
 
-# Getting Started
+This is a React component that provides information about the network connection state and functionalities related to data synchronization with a remote server. Data is saved via MMKV and synchronized as soon as the network connection is established.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+## Features
 
-## Step 1: Start the Metro Server
+- **Network Connection Monitoring**: This provider monitors the device's network connection state.
+- **Automatic Synchronization**: When a network connection is available, the provider automatically initiates data synchronization with a remote server.
+- **Synchronization Control**: Provides indicators and counters to track the progress of data synchronization.
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## Usage
 
-To start Metro, run the following command from the _root_ of your React Native project:
+To use this connection provider, you can wrap your application components with the `ConnectionProvider` and access the information and functionalities provided by the `ConnectionContext` context.
 
-```bash
-# using npm
-npm start
+Usage example:
 
-# OR using Yarn
-yarn start
+```ts
+import React from 'react';
+import {ConnectionProvider} from 'path/to/ConnectionProvider';
+import {ConnectionProviderConfiguration} from 'path/to/@types/ProviderTypes';
+import YourRouteComponent from './YourRouteComponent';
+
+const configuration: ConnectionProviderConfiguration = {
+  baseUrl: 'my-host.com',
+  healthEndpoint: '/health',
+};
+
+const App = () => {
+  return (
+    <ConnectionProvider connectionProviderConfiguration={configuration}>
+      <YourRouteComponent />
+    </ConnectionProvider>
+  );
+};
+
+export default App;
 ```
 
-## Step 2: Start your Application
+To integrate the ConnectionProvider into your React Native application, follow these steps:
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+1. Install the `@react-native-community/netinfo` and `react-native-mmkv` libraries.
+2. Ensure to properly configure the `connectionProviderConfiguration` for your application.
+3. Import the `ConnectionProvider` and wrap your application components with it.
+4. Access the information and functionalities provided by the `ConnectionContext` context.
 
-### For Android
+## API
 
-```bash
-# using npm
-npm run android
+### ConnectionProvider
 
-# OR using Yarn
-yarn android
-```
+- **Props**:
+  - `connectionProviderConfiguration`: Configuration for the connection provider.
 
-### For iOS
+### ConnectionContext
 
-```bash
-# using npm
-npm run ios
+- **Data and Functionalities**:
+  - `netInfoState`: Network connection state.
+  - `isSync`: Synchronization indicator.
+  - `itemsCount`: Count of items to be synchronized.
+  - `storage`: Functionalities related to data manipulation.
 
-# OR using Yarn
-yarn ios
-```
+## Internal Features
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+In addition to the main functionalities, the provider also offers additional internal features:
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+- **Accessors**: Provides access to data storage operations.
+- **checkEndpoint**: Checks if the health endpoint is accessible.
+- **uploadItems**: Sends items to the remote server.
+- **syncItems**: Synchronizes items when the connection is available.
+- **listenerCallBack**: Callback to listen for changes in the network connection state.
 
-## Step 3: Modifying your App
+## Contribution
 
-Now that you have successfully run the app, let's modify it.
+Contributions are welcome! Feel free to open issues and submit pull requests with improvements. Make sure to follow the contribution guidelines.
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+## Social Media
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+You can find us on the following social media platforms:
 
-## Congratulations! :tada:
+- LinkedIn: [Gabriel Santana](https://www.linkedin.com/in/gabriel-sisjr/)
 
-You've successfully run and modified your React Native App. :partying_face:
+Follow us to stay updated on the project and engage in discussions!
 
-### Now what?
+<!-- ## Donations
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+If you would like to financially support this project, consider making a donation through the following means:
 
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- [Patreon](https://www.patreon.com/examplerepo)
+- [PayPal](https://www.paypal.com/donate?hosted_button_id=YOUR_BUTTON_ID)
+- Bitcoin: `YOUR_BITCOIN_WALLET` -->

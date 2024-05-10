@@ -7,6 +7,7 @@ export interface StorageItem {
 }
 
 export interface ConnectionProviderConfiguration {
+  baseUrl: string;
   healthEndpoint: string;
 }
 
