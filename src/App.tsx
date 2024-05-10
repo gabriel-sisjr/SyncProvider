@@ -75,7 +75,10 @@ const Home: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ConnectionProvider>
+    <ConnectionProvider
+      connectionProviderConfiguration={{
+        healthEndpoint: 'https://google.com.br',
+      }}>
       <Home />
     </ConnectionProvider>
   );

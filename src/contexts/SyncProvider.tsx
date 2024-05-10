@@ -12,7 +12,10 @@ export const ConnectionContext = createContext<ConnectionContextData>(
   {} as ConnectionContextData,
 );
 
-export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
+export const ConnectionProvider: React.FC<IPropsProvider> = ({
+  children,
+  connectionProviderConfiguration,
+}) => {
   const [netInfoState, setNetInfoState] = useState<NetInfoState>(
     {} as NetInfoState,
   );
@@ -23,21 +26,24 @@ export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
 
   // Acessors
   const storage = useCallback(() => {
-    const acessors = Acessors<StorageItem>(setData);
+    const acessors = Acessors(setData, setIsSync);
     setItemsCount(data.length);
 
     return acessors;
   }, [setData, data.length]);
 
-  const checkEndpoint = () => {
-    const success = fetch('https://google.com.br')
+  const checkEndpoint = useCallback(() => {
+    const success = fetch(
+      connectionProviderConfiguration?.healthEndpoint ??
+        'https://google.com.br',
+    )
       .then(r => r)
       .catch(err => err);
 
     return success;
-  };
+  }, [connectionProviderConfiguration?.healthEndpoint]);
 
-  const uploadItems = (storageItem: StorageItem[], url: string) => {
+  const uploadItems = (storageItem: StorageItem[]) => {
     // const response = fetch(url, {
     //   method: 'POST',
     //   body: jsonData,
@@ -49,7 +55,7 @@ export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
     //   .catch(err => err);
     const response = new Promise(resolve => {
       setTimeout(() => {
-        resolve({storageItem, url});
+        resolve({storageItem});
       }, 300);
     });
 
@@ -66,12 +72,12 @@ export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
             const storageData = storage().getItem();
 
             if (storageData) {
-              uploadItems(storageData, 'url')
+              uploadItems(storageData)
                 .then(() => {
                   storage().removeItem();
                   const count = storage().countItems();
-                  setItemsCount(count);
                   const sync = count === 0;
+                  setItemsCount(count);
                   setIsSync(sync);
                 })
                 .catch(err => JSON.stringify(err, null, 2));
@@ -80,15 +86,17 @@ export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
         }
       }
     },
-    [storage],
+    [storage, checkEndpoint],
   );
 
   const listenerCallBack = useCallback(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      const sync = storage().countItems() === 0;
+      const count = storage().countItems();
+      const sync = count === 0;
       setIsSync(sync);
+      setItemsCount(count);
+
       setNetInfoState(state);
-      setItemsCount(storage().countItems());
       syncItems(state);
     });
 
@@ -99,11 +107,7 @@ export const ConnectionProvider: React.FC<IPropsProvider> = ({children}) => {
 
   useEffect(() => {
     listenerCallBack();
-  }, [listenerCallBack]);
-
-  useEffect(() => {
-    console.log(JSON.stringify(data, null, 2));
-  }, [data]);
+  }, [listenerCallBack, data.length, storage]);
 
   return (
     <ConnectionContext.Provider

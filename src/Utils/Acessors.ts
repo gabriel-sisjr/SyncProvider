@@ -1,23 +1,27 @@
 import {Dispatch} from 'react';
 import {MMKV} from 'react-native-mmkv';
-import {KEY_STORAGE} from '../@types/ProviderTypes';
+import {KEY_STORAGE, StorageItem} from '../@types/ProviderTypes';
 
-const Acessors = <T>(setData: Dispatch<T[]>) => {
+const Acessors = (
+  setData: Dispatch<StorageItem[]>,
+  setIsSync: Dispatch<boolean>,
+) => {
   const mmkvStorage = new MMKV();
 
-  const getItem = (): T[] | null => {
+  const getItem = (): StorageItem[] | null => {
     const content = mmkvStorage.getString(KEY_STORAGE);
     if (!content) {
       return null;
     }
 
-    const parsed = JSON.parse(content) as T[];
+    const parsed = JSON.parse(content) as StorageItem[];
     return parsed;
   };
 
-  const setItem = (value: T[]): void => {
+  const setItem = (value: StorageItem[]): void => {
     mmkvStorage.set(KEY_STORAGE, JSON.stringify(value));
     setData(value);
+    setIsSync(false);
   };
 
   const countItems = (): number => {
@@ -43,7 +47,7 @@ const Acessors = <T>(setData: Dispatch<T[]>) => {
 
   const removeAll = (): void => {
     mmkvStorage.clearAll();
-    setData([] as T[]);
+    setData([] as StorageItem[]);
   };
 
   const storage = {

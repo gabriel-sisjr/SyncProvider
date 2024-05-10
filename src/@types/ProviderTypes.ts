@@ -6,8 +6,13 @@ export interface StorageItem {
   urlEndpoint: string;
 }
 
+export interface ConnectionProviderConfiguration {
+  healthEndpoint: string;
+}
+
 export interface IPropsProvider {
   children: ReactNode;
+  connectionProviderConfiguration?: ConnectionProviderConfiguration;
 }
 
 export interface ConnectionContextData {
